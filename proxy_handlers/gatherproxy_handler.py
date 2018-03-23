@@ -1,0 +1,157 @@
+# -*- coding: utf-8 -*-
+
+import copy
+import re
+import requests
+import lxml.html
+
+from thread_manager import ThreadHandler
+from requests.exceptions import Timeout, TooManyRedirects, RequestException
+
+
+class GatherProxyHandler(ThreadHandler):
+    """
+    Class to get proxies in gatherproxy.com
+    """
+
+    def __init__(self, event_log, header):
+        super(GatherProxyHandler, self).__init__()
+        self.log = event_log
+        self.header = header
+
+    def initialize(self):
+        """
+        Start threads to get proxies
+
+        :return: Array list proxies
+        """
+
+        self.log(
+            'Looking at gatherproxy.com...',
+            flush=True
+        )
+
+        results = []
+        threads = []
+        proxy_types = [
+            'elite',
+            'anonymous',
+            'transparent'
+        ]
+
+        for proxy_type in proxy_types:
+            pages = self.pages(proxy_type)
+            pages_per_threads = (pages[i:i + 20] for i in xrange(0, len(pages), 20))
+
+            for pgs in pages_per_threads:
+                threads.append(
+                    ThreadHandler(
+                        target=self.get,
+                        args=(
+                            proxy_type,
+                            pgs,
+                        )
+                    )
+                )
+
+        for thread in threads:
+            thread.start()
+
+        for thread in threads:
+            results.append(
+                thread.join()
+            )
+
+        result = [x for i in results for x in i]
+
+        self.log(
+            'Total at gatherproxy.com: \033[93m{}'.format(
+                len(result)
+            )
+        )
+
+        return result
+
+    def pages(self, proxy_type):
+        """
+        Get total pages
+
+        :param proxy_type: Proxy type
+        :return: Total pages
+        """
+
+        headers = copy.copy(self.header)
+        headers['Content-Type'] = 'application/x-www-form-urlencoded'
+
+        try:
+            resp = requests.post(
+                'http://www.gatherproxy.com/proxylist/anonymity/?t={}'.format(
+                    proxy_type[0].upper() + proxy_type[1:]
+                ),
+                headers=headers,
+                data='Type={}&PageIdx=1&Uptime=0'.format(
+                    proxy_type[0].lower() + proxy_type[1:]
+                )
+            )
+        except Exception as err:
+            self.log(err, 'ERROR', True)
+            return 0
+
+        tree = lxml.html.fromstring(resp.text)
+        pagenavi = tree.xpath('.//div[@class="pagenavi"]/a')
+        pages = map(lambda x: x.text, pagenavi)
+
+        result = []
+        for i in xrange(1, int(pages[-1])):
+            result.append(i)
+
+        return result
+
+    def get(self, proxy_type, pages):
+        """
+        Get proxies
+
+        :param proxy_type: Proxy type
+        :param pages: Page to get proxies
+        :return: Array list proxies
+        """
+
+        result = []
+
+        headers = copy.copy(self.header)
+        headers['Content-Type'] = 'application/x-www-form-urlencoded'
+
+        for page in pages:
+            try:
+                resp = requests.post(
+                    'http://www.gatherproxy.com/proxylist/anonymity/?t={}'.format(
+                        proxy_type[0].upper() + proxy_type[1:]
+                    ),
+                    headers=headers,
+                    data='Type={}&PageIdx={}&Uptime=0'.format(
+                        proxy_type[0].lower() + proxy_type[1:],
+                        page
+                    )
+                )
+            except Timeout:
+                continue
+            except TooManyRedirects:
+                continue
+            except RequestException as err:
+                self.log(err, 'ERROR', True)
+                continue
+
+            tree = lxml.html.fromstring(resp.text)
+            for tr in tree.xpath('.//table/tr')[2:]:
+                _, ip, port, _, _, _, _, _ = map(
+                    lambda x: x.text_content().strip().replace(' ', '').replace('\t', ''),
+                    tr.findall('.//td')
+                )
+                result.append(
+                    '{}:{}'.format(
+                        re.search(r'[0-9]+(?:\.[0-9]+){3}', ip).group(),
+                        str(int(port.split("'")[1], 16))
+                    )
+                )
+
+        return result

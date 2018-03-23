@@ -1,0 +1,13 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyCharm IDE settings
+.idea/
+*.iml
+out/
+
+# Files list proxies
+*.dat
+*.txt
