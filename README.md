@@ -13,7 +13,7 @@ git clone https://github.com/Placidina/GetProxies.git
 ````
 Install dependencies
 ```
-$ python -m pip install requests gevent lxml argparse
+$ pip install -r requirements.txt
 ```
 GetProxies works out of the box with [Python](http://www.python.org/download/) version 2.7.x on Linux platform.
 
