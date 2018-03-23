@@ -48,5 +48,4 @@ class EventHandler(object):
             )
         )
 
-        if flush:
-            sys.stdout.flush()
+        sys.stdout.flush()
