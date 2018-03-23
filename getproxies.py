@@ -303,7 +303,7 @@ class GetProxies(EventHandler):
                 if ip_checked:
                     self.save_proxy(proxy)
                     self.total += 1
-                    self.log('Checking Proxy \033[93m{}'.format(proxy), 'YES')
+                    self.log('Checking Proxy \033[93m{}'.format(proxy), 'SUCCESS')
 
     def ip_check(self, html):
         """
