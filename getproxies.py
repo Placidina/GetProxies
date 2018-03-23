@@ -131,8 +131,18 @@ class GetProxies(EventHandler):
     def get_current_ip(self):
         """Obtain the current IP"""
 
-        req = requests.get('http://checkip.amazonaws.com', headers=self.headers)
-        return req.text.replace('\n', '')
+        try:
+            resp = requests.get('http://checkip.amazonaws.com', headers=self.headers, timeout=15)
+            return resp.text.replace('\n', '')
+        except requests.exceptions.Timeout:
+            self.log('Timeout error to check your current IP', 'ERROR', True)
+            sys.exit(1)
+        except requests.exceptions.RequestException:
+            self.log('An HTTP error occurred in check your current ip', 'ERROR', True)
+            sys.exit(1)
+        except Exception as err:
+            self.log(str(err), 'ERROR', True)
+            sys.exit(1)
 
     def run(self):
         """
