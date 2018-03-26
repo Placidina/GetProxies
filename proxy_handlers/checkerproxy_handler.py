@@ -123,6 +123,10 @@ class CheckerProxyHandler(object):
 
             data = json.loads(resp.text)
             for i in data:
-                result.append(str(i['addr']))
+                result.append({
+                    'ip': str(i['addr']).split(':')[0],
+                    'port': int(str(i['addr']).split(':')[1]),
+                    'ms': None
+                })
 
         return result

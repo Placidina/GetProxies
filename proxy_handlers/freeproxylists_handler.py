@@ -152,6 +152,11 @@ class FreeProxyListHandler(object):
                     lambda x: x.text_content().strip().replace(' ', '').replace('\t', ''),
                     tr_.findall('.//td')
                 )
-                result.append('{}:{}'.format(ip, port))
+
+                result.append({
+                    'ip': ip,
+                    'port': int(port),
+                    'ms': None
+                })
 
         return result

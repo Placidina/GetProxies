@@ -11,3 +11,5 @@ out/
 # Files list proxies
 *.dat
 *.txt
+*.json
+!config.json

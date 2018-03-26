@@ -21,6 +21,8 @@ CONFIG = json.load(open('config.json'))
 def parse_args():
     """
     Creating an ArgumentParser
+
+    :return: ArgumentParser
     """
 
     parser = argparse.ArgumentParser(
@@ -33,9 +35,8 @@ def parse_args():
     parser.add_argument(
         '-o',
         '--output',
-        default='proxies.dat',
-        nargs='*',
-        help='Output list of proxies.'
+        default='proxies.json',
+        help='Output JSON file (e.g, exemple.json)'
     )
     group.add_argument(
         '--aliveproxy',
@@ -116,7 +117,6 @@ class GetProxies(EventManager):
         self.args = vars(args)
         self.proxies = []
         self.headers = {'User-Agent': CONFIG['agent']}
-        self.total = 0
         self.current_ip = None
 
     def run(self):
@@ -201,8 +201,8 @@ class GetProxies(EventManager):
                 ).initialize()
             )
 
-        self.proxies = [ips for proxy_site in self.proxies for ips in proxy_site]
-        self.proxies = list(set(self.proxies))
+        self.proxies = [ips for proxy in self.proxies for ips in proxy]
+        self.proxies = {proxy['ip']: proxy for proxy in self.proxies}.values()
 
         self.log(
             'Total Unic Proxies Find: \033[93m{}'.format(
@@ -215,12 +215,12 @@ class GetProxies(EventManager):
             self.start_proxy_checker()
         else:
             self.log('Saving Proxies...')
-            for proxy in self.proxies:
-                self.save_proxy(proxy)
+            self.save_proxy(self.proxies)
 
     def get_current_ip(self):
         """
         Obtain the current IP
+
         :return: String your current IP
         """
 
@@ -245,6 +245,8 @@ class GetProxies(EventManager):
         """
 
         threads = []
+        results = []
+
         if len(self.proxies) >= 100:
             proxies = (
                 self.proxies[i:i + len(self.proxies) / 100]
@@ -271,25 +273,32 @@ class GetProxies(EventManager):
 
         try:
             for thread in threads:
-                thread.join()
+                results.append(thread.join())
         except KeyboardInterrupt:
             self.log('Ctrl-C caught, exiting', 'WARNING', True)
             sys.exit(1)
 
-        self.log('Total Working Proxies: \033[93m{}'.format(self.total))
+        result = [x for i in results for x in i]
+        self.save_proxy(result)
+
+        self.log('Total Working Proxies: \033[93m{}'.format(len(result)))
 
     def checker(self, proxies):
         """
         Check proxy is functional
+
+        :param proxies: List of proxies
+        :return: Array proxies checked
         """
 
+        result = []
         for proxy in proxies:
             try:
                 resp = requests.get('http://checkip.amazonaws.com',
                                     headers=self.headers,
                                     proxies={
-                                        'http': proxy,
-                                        'https': proxy
+                                        'http': '{}:{}'.format(proxy['ip'], proxy['port']),
+                                        'https': '{}:{}'.format(proxy['ip'], proxy['port'])
                                     },
                                     timeout=15)
             except:
@@ -298,13 +307,17 @@ class GetProxies(EventManager):
             if resp.status_code == 200:
                 ip_checked = self.ip_check(resp.text)
                 if ip_checked:
-                    self.save_proxy(proxy)
-                    self.total += 1
-                    self.log('Checking Proxy \033[93m{}'.format(proxy), 'SUCCESS')
+                    proxy['ms'] = str(resp.elapsed)
+                    result.append(proxy)
+                    self.log('Checking Proxy \033[93m{}'.format(proxy['ip']), 'SUCCESS')
+        return result
 
     def ip_check(self, html):
         """
         Verifies that the IP received on self.test_proxy is the same as the proxy
+
+        :param html: Response text
+        :return: True or False
         """
 
         html_lines = html.splitlines()
@@ -322,11 +335,16 @@ class GetProxies(EventManager):
 
         return True
 
-    def save_proxy(self, proxy):
-        """Saves the proxies that are functional"""
-        
-        with open(self.args['output'], "a") as file_proxy:
-            file_proxy.write("%s\n" % proxy)
+    def save_proxy(self, proxies):
+        """
+        Save proxies in JSON file
+
+        :param proxies: Array proxies
+        :return:
+        """
+
+        with open(self.args['output'], "w") as f:
+            json.dump(proxies, f)
 
 
 start = GetProxies(parse_args())

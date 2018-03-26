@@ -128,9 +128,10 @@ class ProxyNovaHandler(object):
                 td = tr.findall('.//td')
                 if len(td) == 8:
                     ip, port, _, _, _, _, _, _ = map(lambda x: x, td)
-                    result.append('{}:{}'.format(
-                        ip.find('.//abbr').attrib['title'].strip().replace(' ', '').replace('\t', ''),
-                        port.text_content().strip().replace(' ', '').replace('\t', ''))
-                    )
+                    result.append({
+                        'ip': ip.find('.//abbr').attrib['title'].strip().replace(' ', '').replace('\t', ''),
+                        'port': int(port.text_content().strip().replace(' ', '').replace('\t', '')),
+                        'ms': None
+                    })
 
         return result

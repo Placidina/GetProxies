@@ -74,6 +74,11 @@ class ProxyIPListHandler(object):
                 lambda x: x.text_content().strip().replace(' ', '').replace('\t', ''),
                 tr.findall('.//td')
             )
-            result.append(proxy)
+
+            result.append({
+                'ip': proxy.split(':')[0],
+                'port': int(proxy.split(':')[1]),
+                'ms': None
+            })
 
         return result

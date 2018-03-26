@@ -3,10 +3,14 @@
 
 Bot to search free HTTP proxies
 
-# Screenshot
+Screenshot
+----
+
 ![Terminal](https://i.imgur.com/znTV1Cg.png)
 
-# Installation
+Installation
+----
+
 Cloning the [Git](https://github.com/Placidina/GetProxies) repository
 ````
 git clone https://github.com/Placidina/GetProxies.git
@@ -17,9 +21,29 @@ $ python -m pip install -r requirements.txt
 ```
 GetProxies works out of the box with [Python](http://www.python.org/download/) version 2.7.x on any platform.
 
-# Arguments
+Output
+----
+
+Output JSON result
 ```
--o | --output         Output list of proxies
+[
+    {
+        "ip": "127.0.0.1",
+        "port": 3128,
+        "ms": null
+    },
+    ...
+]
+```
+* Parameter `ip` of type `String` - IP of proxy
+* Parameter `port` of type `Integir` - Port of proxy
+* Parameter `ms` of type `None` or `String` - Proxy response time of argument `--check`
+
+Arguments
+----
+
+```
+-o | --output         Output JSON file (e.g, exemple.json)
 --aliveproxy          Get proxies from aliveproxy.com
 --checkerproxy        Get proxies from checkerproxy.net
 --coolproxy           Get proxies from cool-proxy.net
@@ -33,12 +57,14 @@ GetProxies works out of the box with [Python](http://www.python.org/download/) v
 --check               Verify the proxies is working
 ```
 
-# Usage
+Usage
+----
+
 ```
 python getproxies.py --all
 python getproxies.py --aliveproxy
 python getproxies.py --aliveproxy --proxynova
-python getproxies.py --aliveproxy -o ~/proxies.txt
+python getproxies.py --aliveproxy -o ~/proxies.json
 python getproxies.py --all --all-no=checkerproxy
 python getproxies.py --all --all-no=checkerproxy,aliveproxy
 ```

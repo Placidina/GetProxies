@@ -131,13 +131,15 @@ class CoolProxyHandler(object):
                         lambda x: x.text_content().strip().replace(' ', '').replace('\t', ''),
                         td
                     )
-                    result.append('{}:{}'.format(
-                        base64.decodestring(
+
+                    result.append({
+                        'ip': base64.decodestring(
                             codecs.getdecoder('rot13')(
                                 re.search('"(.*)"', ip).group(1)
                             )[0]
                         ),
-                        port)
-                    )
+                        'port': int(port),
+                        'ms': None
+                    })
 
         return result

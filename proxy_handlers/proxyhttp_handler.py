@@ -137,6 +137,10 @@ class ProxyHTTPHandler(object):
             script = port.replace('\n', '').replace(' ', '').replace('//', '')
             script = re.search('CDATA\[document\.write\((.*)\)\;\]\]', script).group(1)
 
-            result.append('{}:{}'.format(ip, str(eval(script))))
+            result.append({
+                'ip': ip,
+                'port': int(eval(script)),
+                'ms': None
+            })
 
         return result

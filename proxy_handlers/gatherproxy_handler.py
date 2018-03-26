@@ -150,11 +150,11 @@ class GatherProxyHandler(object):
                     lambda x: x.text_content().strip().replace(' ', '').replace('\t', ''),
                     tr.findall('.//td')
                 )
-                result.append(
-                    '{}:{}'.format(
-                        re.search(r'[0-9]+(?:\.[0-9]+){3}', ip).group(),
-                        str(int(port.split("'")[1], 16))
-                    )
-                )
+
+                result.append({
+                    'ip': re.search(r'[0-9]+(?:\.[0-9]+){3}', ip).group(),
+                    'port': int(port.split("'")[1], 16),
+                    'ms': None
+                })
 
         return result
