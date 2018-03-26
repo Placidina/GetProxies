@@ -1,7 +1,7 @@
 # GetProxies
 [![Build Status](https://travis-ci.org/Placidina/GetProxies.svg?branch=master)](https://travis-ci.org/Placidina/GetProxies) [![Python 2.7](https://img.shields.io/badge/python-2.7-yellow.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/license-GPLv3-red.svg)](https://github.com/Placidina/GetProxies/blob/master/LICENSE)
 
-Free proxy Search
+Bot to search free HTTP proxies
 
 # Screenshot
 ![Terminal](https://i.imgur.com/znTV1Cg.png)
