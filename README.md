@@ -1,5 +1,5 @@
 # GetProxies
-![Python 2.7](https://img.shields.io/badge/python-2.7-green.svg)
+[![Python 2.7](https://img.shields.io/badge/python-2.7-green.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/license-GPLv3-red.svg)](https://github.com/Placidina/GetProxies/blob/master/LICENSE)
 
 Free proxy Search
 
