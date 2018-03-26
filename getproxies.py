@@ -18,7 +18,6 @@ sys.tracebacklimit = 0
 
 CONFIG = json.load(open('config.json'))
 
-
 def parse_args():
     """
     Creating an ArgumentParser
@@ -104,7 +103,10 @@ def parse_args():
         help='Verify the proxies is working'
     )
 
-    return parser.parse_args()
+    try:
+        return parser.parse_args()
+    except SystemExit:
+        sys.exit(0)
 
 
 class GetProxies(EventManager):
@@ -327,5 +329,6 @@ class GetProxies(EventManager):
             file_proxy.write("%s\n" % proxy)
 
 
-start = GetProxies(parse_args())
-start.run()
+parse_args()
+#start = GetProxies(parse_args())
+#start.run()
