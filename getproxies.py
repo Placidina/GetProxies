@@ -329,6 +329,5 @@ class GetProxies(EventManager):
             file_proxy.write("%s\n" % proxy)
 
 
-parse_args()
-#start = GetProxies(parse_args())
-#start.run()
+start = GetProxies(parse_args())
+start.run()
