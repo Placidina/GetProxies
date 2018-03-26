@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import sys
 import re
-import requests
 import lxml.html
+import requests
 
-from thread_manager import ThreadHandler
 from requests.exceptions import Timeout, TooManyRedirects, RequestException
+from managers import ThreadManager
 
 
-class ProxyHTTPHandler(ThreadHandler):
+class ProxyHTTPHandler(object):
     """
     Class to get proxies in proxyhttp.net
     """
@@ -36,7 +37,7 @@ class ProxyHTTPHandler(ThreadHandler):
         pages = self.pages()
         for page in pages:
             threads.append(
-                ThreadHandler(
+                ThreadManager(
                     target=self.get,
                     args=(
                         page,
@@ -47,10 +48,12 @@ class ProxyHTTPHandler(ThreadHandler):
         for thread in threads:
             thread.start()
 
-        for thread in threads:
-            results.append(
-                thread.join()
-            )
+        try:
+            for thread in threads:
+                results.append(thread.join())
+        except KeyboardInterrupt:
+            self.log('Ctrl-C caught, exiting', 'WARNING', True)
+            sys.exit(1)
 
         result = [x for i in results for x in i]
 

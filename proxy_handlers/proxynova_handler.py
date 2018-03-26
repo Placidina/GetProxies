@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import requests
+import sys
 import lxml.html
+import requests
 
-from thread_manager import ThreadHandler
 from requests.exceptions import Timeout, TooManyRedirects, RequestException
+from managers import ThreadManager
 
 
-class ProxyNovaHandler(ThreadHandler):
+class ProxyNovaHandler(object):
     """
     Class to get proxies in proxynova.com
     """
@@ -37,7 +38,7 @@ class ProxyNovaHandler(ThreadHandler):
 
         for cts in countries_per_threads:
             threads.append(
-                ThreadHandler(
+                ThreadManager(
                     target=self.get,
                     args=(
                         cts,
@@ -48,10 +49,12 @@ class ProxyNovaHandler(ThreadHandler):
         for thread in threads:
             thread.start()
 
-        for thread in threads:
-            results.append(
-                thread.join()
-            )
+        try:
+            for thread in threads:
+                results.append(thread.join())
+        except KeyboardInterrupt:
+            self.log('Ctrl-C caught, exiting', 'WARNING', True)
+            sys.exit(1)
 
         result = [x for i in results for x in i]
 

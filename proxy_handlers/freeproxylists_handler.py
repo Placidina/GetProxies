@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 
+import sys
 import codecs
 import lxml.html
 import requests
 
-from thread_manager import ThreadHandler
 from requests.exceptions import Timeout, TooManyRedirects, RequestException
+from managers import ThreadManager
 
 
-class FreeProxyListHandler(ThreadHandler):
+class FreeProxyListHandler(object):
     """
     Class to get proxies in freeproxylists.com
     """
@@ -50,7 +51,7 @@ class FreeProxyListHandler(ThreadHandler):
             links_per_threads = (links[i:i + 5] for i in xrange(0, len(links), 5))
             for lks in links_per_threads:
                 threads.append(
-                    ThreadHandler(
+                    ThreadManager(
                         target=self.get,
                         args=(
                             lks,
@@ -61,10 +62,12 @@ class FreeProxyListHandler(ThreadHandler):
             for thread in threads:
                 thread.start()
 
-            for thread in threads:
-                results.append(
-                    thread.join()
-                )
+            try:
+                for thread in threads:
+                    results.append(thread.join())
+            except KeyboardInterrupt:
+                self.log('Ctrl-C caught, exiting', 'WARNING', True)
+                sys.exit(1)
 
         result = [x for i in results for x in i]
 

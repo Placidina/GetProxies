@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import sys
 import requests
 import lxml.html
 
-from thread_manager import ThreadHandler
 from requests.exceptions import Timeout, TooManyRedirects, RequestException
+from managers import ThreadManager
 
 
-class AliveProxyHandler(ThreadHandler):
+class AliveProxyHandler(object):
     """
     Class to get proxies in aliveproxy.com
     """
@@ -31,19 +32,19 @@ class AliveProxyHandler(ThreadHandler):
 
         results = []
         threads = [
-            ThreadHandler(
+            ThreadManager(
                 target=self.get,
                 args=(
                     'high-anonymity-proxy-list/',
                 )
             ),
-            ThreadHandler(
+            ThreadManager(
                 target=self.get,
                 args=(
                     'anonymous-proxy-list/',
                 )
             ),
-            ThreadHandler(
+            ThreadManager(
                 target=self.get,
                 args=(
                     'transparent-proxy-list/',
@@ -54,8 +55,12 @@ class AliveProxyHandler(ThreadHandler):
         for thread in threads:
             thread.start()
 
-        for thread in threads:
-            results.append(thread.join())
+        try:
+            for thread in threads:
+                results.append(thread.join())
+        except KeyboardInterrupt:
+            self.log('Ctrl-C caught, exiting', 'WARNING', True)
+            sys.exit(1)
 
         result = [x for i in results for x in i]
 

@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 
+import sys
 import copy
 import re
-import requests
 import lxml.html
+import requests
 
-from thread_manager import ThreadHandler
 from requests.exceptions import Timeout, TooManyRedirects, RequestException
+from managers import ThreadManager
 
 
-class GatherProxyHandler(ThreadHandler):
+class GatherProxyHandler(object):
     """
     Class to get proxies in gatherproxy.com
     """
@@ -45,7 +46,7 @@ class GatherProxyHandler(ThreadHandler):
 
             for pgs in pages_per_threads:
                 threads.append(
-                    ThreadHandler(
+                    ThreadManager(
                         target=self.get,
                         args=(
                             proxy_type,
@@ -57,10 +58,12 @@ class GatherProxyHandler(ThreadHandler):
         for thread in threads:
             thread.start()
 
-        for thread in threads:
-            results.append(
-                thread.join()
-            )
+        try:
+            for thread in threads:
+                results.append(thread.join())
+        except KeyboardInterrupt:
+            self.log('Ctrl-C caught, exiting', 'WARNING', True)
+            sys.exit(1)
 
         result = [x for i in results for x in i]
 

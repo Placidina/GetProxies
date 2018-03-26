@@ -3,7 +3,7 @@
 from threading import Thread
 
 
-class ThreadHandler(Thread):
+class ThreadManager(Thread):
 
     def __init__(self, group=None, target=None, name=None,
                  args=(), kwargs={}, verbose=None):

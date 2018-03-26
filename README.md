@@ -13,9 +13,9 @@ git clone https://github.com/Placidina/GetProxies.git
 ````
 Install dependencies
 ```
-$ pip install -r requirements.txt
+$ python -m pip install -r requirements.txt
 ```
-GetProxies works out of the box with [Python](http://www.python.org/download/) version 2.7.x on Linux platform.
+GetProxies works out of the box with [Python](http://www.python.org/download/) version 2.7.x on any platform.
 
 # Arguments
 ```
@@ -35,10 +35,10 @@ GetProxies works out of the box with [Python](http://www.python.org/download/) v
 
 # Usage
 ```
-./getproxies.py --all
-./getproxies.py --aliveproxy
-./getproxies.py --aliveproxy --proxynova
-./getproxies.py --aliveproxy -o ~/proxies.txt
-./getproxies.py --all --all-no=checkerproxy
-./getproxies.py --all --all-no=checkerproxy,aliveproxy
+python getproxies.py --all
+python getproxies.py --aliveproxy
+python getproxies.py --aliveproxy --proxynova
+python getproxies.py --aliveproxy -o ~/proxies.txt
+python getproxies.py --all --all-no=checkerproxy
+python getproxies.py --all --all-no=checkerproxy,aliveproxy
 ```

@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
 
+import sys
 import base64
 import codecs
-import lxml.html
 import re
+import lxml.html
 import requests
 
-from thread_manager import ThreadHandler
 from requests.exceptions import Timeout, TooManyRedirects, RequestException
+from managers import ThreadManager
 
 
-class CoolProxyHandler(ThreadHandler):
+class CoolProxyHandler(object):
     """
     Class to get proxies in cool-proxy.net
     """
@@ -39,7 +40,7 @@ class CoolProxyHandler(ThreadHandler):
         pages_per_threads = (pages[i:i + 3] for i in xrange(0, len(pages), 3))
         for pgs in pages_per_threads:
             threads.append(
-                ThreadHandler(
+                ThreadManager(
                     target=self.get,
                     args=(
                         pgs,
@@ -50,8 +51,12 @@ class CoolProxyHandler(ThreadHandler):
         for thread in threads:
             thread.start()
 
-        for thread in threads:
-            results.append(thread.join())
+        try:
+            for thread in threads:
+                results.append(thread.join())
+        except KeyboardInterrupt:
+            self.log('Ctrl-C caught, exiting', 'WARNING', True)
+            sys.exit(1)
 
         result = [x for i in results for x in i]
 

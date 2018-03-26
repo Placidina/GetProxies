@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import requests
+import sys
 import lxml.html
+import requests
 
-from thread_manager import ThreadHandler
 from requests.exceptions import Timeout, TooManyRedirects, RequestException
+from managers import ThreadManager
 
 
-class ProxyIPListHandler(ThreadHandler):
+class ProxyIPListHandler(object):
     """
     Class to get proxies in proxy-ip-list.com
     """
@@ -29,11 +30,14 @@ class ProxyIPListHandler(ThreadHandler):
             flush=True
         )
 
-        thread = ThreadHandler(
-            target=self.get
-        )
+        thread = ThreadManager(target=self.get)
         thread.start()
-        result = thread.join()
+        
+        try:
+            result = thread.join()
+        except KeyboardInterrupt:
+            self.log('Ctrl-C caught, exiting', 'WARNING', True)
+            sys.exit(1)
 
         self.log(
             'Total at proxy-ip-list.com: \033[93m{}'.format(

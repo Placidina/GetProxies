@@ -3,16 +3,20 @@
 import sys
 import re
 import argparse
+import json
 import requests
 
 from gevent import monkey
-from event_manager import EventHandler
-from thread_manager import ThreadHandler
+from managers import EventManager, ThreadManager
 from proxy_handlers import GatherProxyHandler, ProxyIPListHandler, AliveProxyHandler,\
-CoolProxyHandler, ProxyNovaHandler, ProxyHTTPHandler, CheckerProxyHandler, FreeProxyListHandler
+    CoolProxyHandler, ProxyNovaHandler, ProxyHTTPHandler, CheckerProxyHandler, FreeProxyListHandler
+
 
 monkey.patch_all()
 sys.tracebacklimit = 0
+
+
+CONFIG = json.load(open('config.json'))
 
 
 def parse_args():
@@ -103,52 +107,24 @@ def parse_args():
     return parser.parse_args()
 
 
-class GetProxies(EventHandler):
+class GetProxies(EventManager):
 
     def __init__(self, args):
         super(GetProxies, self).__init__()
-        self.save_file_name = args.output
-        self.aliveproxy = args.aliveproxy
-        self.checkerproxy = args.checkerproxy
-        self.coolproxy = args.coolproxy
-        self.freeproxylist = args.freeproxylist
-        self.gatherproxy = args.gatherproxy
-        self.proxyhttp = args.proxyhttp
-        self.proxyiplist = args.proxyiplist
-        self.proxynova = args.proxynova
-        self.all = args.all
-        self.all_no = args.all_no
-        self.check_proxies = args.check
+        self.args = vars(args)
         self.proxies = []
-        self.headers = {
-            'User-Agent': 'Mozilla/5.Mozilla/5.0 (Windows NT 10.0; WOW64) \
-            AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.75 Safari/537.36'
-        }
-        self.errors = []
+        self.headers = {'User-Agent': CONFIG['agent']}
         self.total = 0
-        self.current_ip = self.get_current_ip()
-
-    def get_current_ip(self):
-        """Obtain the current IP"""
-
-        try:
-            resp = requests.get('http://checkip.amazonaws.com', headers=self.headers, timeout=15)
-            return resp.text.replace('\n', '')
-        except requests.exceptions.Timeout:
-            self.log('Timeout error to check your current IP', 'ERROR', True)
-            sys.exit(1)
-        except requests.exceptions.RequestException:
-            self.log('An HTTP error occurred in check your current ip', 'ERROR', True)
-            sys.exit(1)
-        except Exception as err:
-            self.log(str(err), 'ERROR', True)
-            sys.exit(1)
+        self.current_ip = None
 
     def run(self):
         """
         Start class GetProxies
         """
 
+        self.log('GetProxies initialized')
+
+        self.current_ip = self.get_current_ip()
         self.log(
             'Your Current IP: \033[93m{}'.format(
                 self.current_ip
@@ -156,10 +132,10 @@ class GetProxies(EventHandler):
         )
 
         all_no = []
-        if len(self.all_no):
-            all_no = map(str, self.all_no.split(','))
+        if len(self.args['all_no']):
+            all_no = map(str, self.args['all_no'].split(','))
 
-        if self.gatherproxy or self.all and 'gatherproxy' not in all_no:
+        if self.args['gatherproxy'] or self.args['all'] and 'gatherproxy' not in all_no:
             self.proxies.append(
                 GatherProxyHandler(
                     self.log,
@@ -167,7 +143,7 @@ class GetProxies(EventHandler):
                 ).initialize()
             )
 
-        if self.proxyiplist or self.all and 'proxyiplist' not in all_no:
+        if self.args['proxyiplist'] or self.args['all'] and 'proxyiplist' not in all_no:
             self.proxies.append(
                 ProxyIPListHandler(
                     self.log,
@@ -175,7 +151,7 @@ class GetProxies(EventHandler):
                 ).initialize()
             )
 
-        if self.aliveproxy or self.all and 'aliveproxy' not in all_no:
+        if self.args['aliveproxy'] or self.args['all'] and 'aliveproxy' not in all_no:
             self.proxies.append(
                 AliveProxyHandler(
                     self.log,
@@ -183,7 +159,7 @@ class GetProxies(EventHandler):
                 ).initialize()
             )
 
-        if self.coolproxy or self.all and 'coolproxy' not in all_no:
+        if self.args['coolproxy'] or self.args['all'] and 'coolproxy' not in all_no:
             self.proxies.append(
                 CoolProxyHandler(
                     self.log,
@@ -191,7 +167,7 @@ class GetProxies(EventHandler):
                 ).initialize()
             )
 
-        if self.proxynova or self.all and 'proxynova' not in all_no:
+        if self.args['proxynova'] or self.args['all'] and 'proxynova' not in all_no:
             self.proxies.append(
                 ProxyNovaHandler(
                     self.log,
@@ -199,7 +175,7 @@ class GetProxies(EventHandler):
                 ).initialize()
             )
 
-        if self.proxyhttp or self.all and 'proxyhttp' not in all_no:
+        if self.args['proxyhttp'] or self.args['all'] and 'proxyhttp' not in all_no:
             self.proxies.append(
                 ProxyHTTPHandler(
                     self.log,
@@ -207,7 +183,7 @@ class GetProxies(EventHandler):
                 ).initialize()
             )
 
-        if self.checkerproxy or self.all and 'checkerproxy' not in all_no:
+        if self.args['checkerproxy'] or self.args['all'] and 'checkerproxy' not in all_no:
             self.proxies.append(
                 CheckerProxyHandler(
                     self.log,
@@ -215,7 +191,7 @@ class GetProxies(EventHandler):
                 ).initialize()
             )
 
-        if self.freeproxylist or self.all and 'freeproxylist' not in all_no:
+        if self.args['freeproxylist'] or self.args['all'] and 'freeproxylist' not in all_no:
             self.proxies.append(
                 FreeProxyListHandler(
                     self.log,
@@ -232,13 +208,32 @@ class GetProxies(EventHandler):
             )
         )
 
-        if self.check_proxies:
+        if self.args['check']:
             self.log('Testing Proxies...')
             self.start_proxy_checker()
         else:
             self.log('Saving Proxies...')
             for proxy in self.proxies:
                 self.save_proxy(proxy)
+
+    def get_current_ip(self):
+        """
+        Obtain the current IP
+        :return: String your current IP
+        """
+
+        try:
+            resp = requests.get('http://checkip.amazonaws.com', headers=self.headers, timeout=15)
+            return resp.text.replace('\n', '')
+        except requests.exceptions.Timeout:
+            self.log('Timeout error to check your current IP', 'ERROR', True)
+            sys.exit(1)
+        except requests.exceptions.RequestException:
+            self.log('An HTTP error occurred in check your current ip', 'ERROR', True)
+            sys.exit(1)
+        except Exception as err:
+            self.log(str(err), 'ERROR', True)
+            sys.exit(1)
 
     def start_proxy_checker(self):
         """
@@ -261,7 +256,7 @@ class GetProxies(EventHandler):
 
         for pxs in proxies:
             threads.append(
-                ThreadHandler(
+                ThreadManager(
                     target=self.checker,
                     args=(
                         pxs,
@@ -311,10 +306,9 @@ class GetProxies(EventHandler):
         """
 
         html_lines = html.splitlines()
-        leng = len(html_lines)
         ip_re = '(?:[0-9]{1,3}\.){3}[0-9]{1,3}'
 
-        if leng == 1:
+        if len(html_lines) == 1:
             match = re.match(ip_re, html)
             if match:
                 if self.current_ip in html:
@@ -329,7 +323,7 @@ class GetProxies(EventHandler):
     def save_proxy(self, proxy):
         """Saves the proxies that are functional"""
         
-        with open(self.save_file_name, "a") as file_proxy:
+        with open(self.args['output'], "a") as file_proxy:
             file_proxy.write("%s\n" % proxy)
 
 

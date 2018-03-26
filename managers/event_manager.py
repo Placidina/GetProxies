@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 
 import sys
 import time
+from colorama import init
+
 
 LOG_COLOR = {
     'INFO': '94m',
@@ -21,7 +23,10 @@ TAG_LOG = {
 }
 
 
-class EventHandler(object):
+init()
+
+
+class EventManager(object):
 
     def __init__(self):
         pass
