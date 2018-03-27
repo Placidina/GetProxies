@@ -37,7 +37,7 @@ Output JSON result
 ```
 * Parameter `ip` of type `String` - IP of proxy
 * Parameter `port` of type `Integir` - Port of proxy
-* Parameter `ms` of type `None` or `String` - Proxy response time of argument `--check`
+* Parameter `ms` of type `null` or `String` - Proxy response time of argument `--check`
 
 Arguments
 ----
