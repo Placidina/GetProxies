@@ -94,7 +94,7 @@ class AliveProxyHandler(object):
         except TooManyRedirects:
             return result
         except RequestException as err:
-            self.event_handler.log(err, 'ERROR', True)
+            self.log(err, 'ERROR', True)
             return result
 
         tree = lxml.html.fromstring(resp.text)
