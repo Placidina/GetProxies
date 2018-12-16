@@ -6,35 +6,50 @@ defaults: &defaults
   working_directory: ~/GetProxies
 
 jobs:
-  test:
-    <<: *defaults
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}
-          - v1-dependencies-
-      - run:
-          name: Install Dependencies
-          command: pip install -r requirements.txt --use
-      - save_cache:
-          paths:
-            - ~/vendor
-          key: v1-dependencies-{{ checksum "requirements.txt" }}
-      - run:
-          name: Run Tests
-          command: python -c "import getproxies"
-      - run:
-          name: Setting Artifacts
-          command: mkdir -p /tmp/artifacts
-      - store_artifacts:
-          path: /tmp/artifacts
-          destination: tests
-      - store_test_results:
-          path: /tmp/artifacts
+    test:
+        <<: *defaults
+        steps:
+            - checkout
+            - restore_cache:
+                keys:
+                - v1-dependencies-{{ checksum "requirements.txt" }}
+                - v1-dependencies-
+            - run:
+                name: Install Dependencies
+                command: pip install -r requirements.txt --use
+            - save_cache:
+                paths:
+                - ~/vendor
+                key: v1-dependencies-{{ checksum "requirements.txt" }}
+            - run:
+                name: Run Tests
+                command: python -c "import getproxies"
+            - run:
+                name: Setting Artifacts
+                command: mkdir -p /tmp/artifacts
+            - store_artifacts:
+                path: /tmp/artifacts
+                destination: tests
+            - store_test_results:
+                path: /tmp/artifacts
+    deploy:
+        <<: *defaults
+        steps:
+        - checkout
+        - run:
+            name: No Action
+            command: exit 0
 
 workflows:
-  version: 2
-  tests:
-    jobs:
-      - test
+    version: 2
+    tests:
+        jobs:
+            - test
+            - deploy:
+                requires:
+                    - test
+                filters:
+                    tags:
+                        only: /.*/
+                    branches:
+                        ignore: /.*/

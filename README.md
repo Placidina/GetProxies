@@ -1,20 +1,26 @@
 # GetProxies
-[![Build Status](https://travis-ci.org/Placidina/GetProxies.svg?branch=master)](https://travis-ci.org/Placidina/GetProxies) [![Python 2.7](https://img.shields.io/badge/python-2.7-yellow.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/license-GPLv3-red.svg)](https://github.com/Placidina/GetProxies/blob/master/LICENSE)
+
+[![CircleCI](https://img.shields.io/circleci/project/github/Placidina/GetProxies.svg?style=popout-square")](https://circleci.com/gh/Placidina/GetProxies)
+[![Python 2.7](https://img.shields.io/badge/python-2.7-yellow.svg)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-GPLv3-red.svg)](https://github.com/Placidina/GetProxies/blob/master/LICENSE)
 
 Bot to search free HTTP proxies
 
 Screenshot
+
 ----
 
 ![Terminal](https://i.imgur.com/znTV1Cg.png)
 
 Installation
+
 ----
 
 Cloning the [Git](https://github.com/Placidina/GetProxies) repository
 ````
 git clone https://github.com/Placidina/GetProxies.git
 ````
+
 Install dependencies
 ```
 $ python -m pip install -r requirements.txt
@@ -22,6 +28,7 @@ $ python -m pip install -r requirements.txt
 GetProxies works out of the box with [Python](http://www.python.org/download/) version 2.7.x on any platform.
 
 Output
+
 ----
 
 Output JSON result
@@ -35,11 +42,13 @@ Output JSON result
     ...
 ]
 ```
+
 * Parameter `ip` of type `String` - IP of proxy
 * Parameter `port` of type `Integir` - Port of proxy
 * Parameter `ms` of type `null` or `String` - Proxy response time of argument `--check`
 
 Arguments
+
 ----
 
 ```
@@ -58,6 +67,7 @@ Arguments
 ```
 
 Usage
+
 ----
 
 ```
