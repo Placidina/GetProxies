@@ -16,19 +16,14 @@ jobs:
           - v1-dependencies-
       - run:
           name: Install Dependencies
-          command: |
-            python -m venv venv
-            . venv/bin/activate
-            pip install -r requirements.txt
+          command: pip install -r requirements.txt
       - save_cache:
           paths:
-            - ./venv
+            - ~/vendor
           key: v1-dependencies-{{ checksum "requirements.txt" }}
       - run:
           name: Run Tests
-          command: |
-            . venv/bin/activate
-            python -c "import getproxies"
+          command: python -c "import getproxies"
       - run:
           name: Setting Artifacts
           command: mkdir -p /tmp/artifacts
