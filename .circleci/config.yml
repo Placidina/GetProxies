@@ -16,7 +16,7 @@ jobs:
           - v1-dependencies-
       - run:
           name: Install Dependencies
-          command: pip install -r requirements.txt
+          command: pip install -r requirements.txt --use
       - save_cache:
           paths:
             - ~/vendor
