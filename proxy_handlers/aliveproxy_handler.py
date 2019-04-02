@@ -100,13 +100,13 @@ class AliveProxyHandler(object):
         tree = lxml.html.fromstring(resp.text)
         for tr in tree.findall('.//tr[@class="cw-list"]'):
             proxy, _, _, _, _, _, _, _, _, _ = map(
-                lambda x: x.text_content().strip().replace(' ', '').replace('\t', ''),
+                lambda x: x.xpath('.//br/preceding-sibling::text()[1]'),
                 tr.findall('.//td')
             )
 
             result.append({
-                'ip': proxy.split(':')[0],
-                'port': int(proxy.split(':')[1]),
+                'ip': proxy[0].split(':')[0],
+                'port': int(proxy[0].split(':')[1]),
                 'ms': None
             })
 
