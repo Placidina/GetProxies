@@ -55,7 +55,6 @@ Arguments
 -o | --output         Output JSON file (e.g, exemple.json)
 --aliveproxy          Get proxies from aliveproxy.com
 --checkerproxy        Get proxies from checkerproxy.net
---coolproxy           Get proxies from cool-proxy.net
 --freeproxylist       Get proxies from freeproxylists.com
 --gatherproxy         Get proxies from gatherproxy.com
 --proxyhttp           Get proxies from proxyhttp.net

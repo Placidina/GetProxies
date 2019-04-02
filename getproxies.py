@@ -9,7 +9,7 @@ import requests
 from gevent import monkey
 from managers import EventManager, ThreadManager
 from proxy_handlers import GatherProxyHandler, ProxyIPListHandler, AliveProxyHandler,\
-    CoolProxyHandler, ProxyNovaHandler, ProxyHTTPHandler, CheckerProxyHandler, FreeProxyListHandler
+    ProxyNovaHandler, ProxyHTTPHandler, CheckerProxyHandler, FreeProxyListHandler
 
 
 monkey.patch_all()
@@ -49,12 +49,6 @@ def parse_args():
         default=False,
         action='store_true',
         help='Get proxies from checkerproxy.net'
-    )
-    group.add_argument(
-        '--coolproxy',
-        default=False,
-        action='store_true',
-        help='Get proxies from cool-proxy.net'
     )
     group.add_argument(
         '--freeproxylist',
@@ -156,14 +150,6 @@ class GetProxies(EventManager):
         if self.args['aliveproxy'] or self.args['all'] and 'aliveproxy' not in all_no:
             self.proxies.append(
                 AliveProxyHandler(
-                    self.log,
-                    self.headers
-                ).initialize()
-            )
-
-        if self.args['coolproxy'] or self.args['all'] and 'coolproxy' not in all_no:
-            self.proxies.append(
-                CoolProxyHandler(
                     self.log,
                     self.headers
                 ).initialize()
