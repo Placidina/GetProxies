@@ -1,4 +1,7 @@
-#!/usr/bin/env python2
+#!/usr/bin/python3
+
+from gevent import monkey
+monkey.patch_all()
 
 import sys
 import re
@@ -6,17 +9,14 @@ import argparse
 import json
 import requests
 
-from gevent import monkey
-from managers import EventManager, ThreadManager
-from proxy_handlers import GatherProxyHandler, ProxyIPListHandler, AliveProxyHandler,\
-    ProxyNovaHandler, ProxyHTTPHandler, CheckerProxyHandler, FreeProxyListHandler
+from core import Logging, Threading
+from handler import GatherProxy, ProxyIPList, AliveProxy,\
+    ProxyNova, ProxyHTTP, CheckerProxy, FreeProxyList
 
 
-monkey.patch_all()
-sys.tracebacklimit = 0
-
-
+# sys.tracebacklimit = 0
 CONFIG = json.load(open('config.json'))
+
 
 def parse_args():
     """
@@ -104,7 +104,7 @@ def parse_args():
         sys.exit(0)
 
 
-class GetProxies(EventManager):
+class GetProxies(Logging):
 
     def __init__(self, args):
         super(GetProxies, self).__init__()
@@ -128,12 +128,12 @@ class GetProxies(EventManager):
         )
 
         all_no = []
-        if len(self.args['all_no']):
+        if self.args['all_no']:
             all_no = map(str, self.args['all_no'].split(','))
 
         if self.args['gatherproxy'] or self.args['all'] and 'gatherproxy' not in all_no:
             self.proxies.append(
-                GatherProxyHandler(
+                GatherProxy(
                     self.log,
                     self.headers
                 ).initialize()
@@ -141,7 +141,7 @@ class GetProxies(EventManager):
 
         if self.args['proxyiplist'] or self.args['all'] and 'proxyiplist' not in all_no:
             self.proxies.append(
-                ProxyIPListHandler(
+                ProxyIPList(
                     self.log,
                     self.headers
                 ).initialize()
@@ -149,7 +149,7 @@ class GetProxies(EventManager):
 
         if self.args['aliveproxy'] or self.args['all'] and 'aliveproxy' not in all_no:
             self.proxies.append(
-                AliveProxyHandler(
+                AliveProxy(
                     self.log,
                     self.headers
                 ).initialize()
@@ -157,7 +157,7 @@ class GetProxies(EventManager):
 
         if self.args['proxynova'] or self.args['all'] and 'proxynova' not in all_no:
             self.proxies.append(
-                ProxyNovaHandler(
+                ProxyNova(
                     self.log,
                     self.headers
                 ).initialize()
@@ -165,7 +165,7 @@ class GetProxies(EventManager):
 
         if self.args['proxyhttp'] or self.args['all'] and 'proxyhttp' not in all_no:
             self.proxies.append(
-                ProxyHTTPHandler(
+                ProxyHTTP(
                     self.log,
                     self.headers
                 ).initialize()
@@ -173,7 +173,7 @@ class GetProxies(EventManager):
 
         if self.args['checkerproxy'] or self.args['all'] and 'checkerproxy' not in all_no:
             self.proxies.append(
-                CheckerProxyHandler(
+                CheckerProxy(
                     self.log,
                     self.headers
                 ).initialize()
@@ -181,7 +181,7 @@ class GetProxies(EventManager):
 
         if self.args['freeproxylist'] or self.args['all'] and 'freeproxylist' not in all_no:
             self.proxies.append(
-                FreeProxyListHandler(
+                FreeProxyList(
                     self.log,
                     self.headers
                 ).initialize()
@@ -219,9 +219,6 @@ class GetProxies(EventManager):
         except requests.exceptions.RequestException:
             self.log('An HTTP error occurred in check your current ip', 'ERROR', True)
             sys.exit(1)
-        except Exception as err:
-            self.log(str(err), 'ERROR', True)
-            sys.exit(1)
 
     def start_proxy_checker(self):
         """
@@ -236,17 +233,17 @@ class GetProxies(EventManager):
         if len(self.proxies) >= 100:
             proxies = (
                 self.proxies[i:i + len(self.proxies) / 100]
-                for i in xrange(0, len(self.proxies), len(self.proxies) / 100)
+                for i in range(0, len(self.proxies), len(self.proxies) / 100)
             )
         else:
             proxies = (
                 self.proxies[i:i + len(self.proxies) / 10]
-                for i in xrange(0, len(self.proxies), len(self.proxies) / 10)
+                for i in range(0, len(self.proxies), len(self.proxies) / 10)
             )
 
         for pxs in proxies:
             threads.append(
-                ThreadManager(
+                Threading(
                     target=self.checker,
                     args=(
                         pxs,
@@ -259,7 +256,7 @@ class GetProxies(EventManager):
 
         try:
             for thread in threads:
-                results.append(thread.join())
+                results.append(thread.wait())
         except KeyboardInterrupt:
             self.log('Ctrl-C caught, exiting', 'WARNING', True)
             sys.exit(1)
@@ -287,7 +284,7 @@ class GetProxies(EventManager):
                                         'https': '{}:{}'.format(proxy['ip'], proxy['port'])
                                     },
                                     timeout=15)
-            except:
+            except requests.exceptions.RequestException:
                 continue
 
             if resp.status_code == 200:
@@ -296,6 +293,7 @@ class GetProxies(EventManager):
                     proxy['ms'] = str(resp.elapsed)
                     result.append(proxy)
                     self.log('Checking Proxy \033[93m{}'.format(proxy['ip']), 'SUCCESS')
+
         return result
 
     def ip_check(self, html):
@@ -307,10 +305,8 @@ class GetProxies(EventManager):
         """
 
         html_lines = html.splitlines()
-        ip_re = '(?:[0-9]{1,3}\.){3}[0-9]{1,3}'
-
         if len(html_lines) == 1:
-            match = re.match(ip_re, html)
+            match = re.match(r'(?:[0-9]{1,3}\.){3}[0-9]{1,3}', html)
             if match:
                 if self.current_ip in html:
                     return False
@@ -333,5 +329,6 @@ class GetProxies(EventManager):
             json.dump(proxies, f)
 
 
-start = GetProxies(parse_args())
-start.run()
+if __name__ == '__main__':
+    start = GetProxies(parse_args())
+    start.run()

@@ -1,3 +1,43 @@
+[MASTER]
+extension-pkg-whitelist=lxml
+
 [MESSAGES CONTROL]
-disable=line-too-long,
-        missing-docstring
+disable=wrong-import-position,
+    wrong-import-order,
+    missing-docstring,
+    ungrouped-imports,
+    invalid-name,
+    protected-access,
+    no-self-use,
+    too-few-public-methods,
+    exec-used,
+    global-statement,
+    multiple-statements,
+    locally-disabled,
+    cyclic-import,
+    too-many-arguments,
+    redefined-builtin,
+    useless-suppression,
+    duplicate-code,
+    undefined-all-variable,
+    inconsistent-return-statements,
+    useless-return,
+    useless-object-inheritance
+
+
+[FORMAT]
+max-line-length=160
+max-module-lines=1100
+
+[MISCELLANEOUS]
+notes=
+
+[VARIABLES]
+dummy-variables-rgx=_.*
+
+[DESIGN]
+max-attributes=12
+max-parents=10
+
+[BASIC]
+# unsafe-load-any-extension = no

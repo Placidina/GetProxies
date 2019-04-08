@@ -2,7 +2,7 @@ version: 2
 
 defaults: &defaults
   docker:
-    - image: circleci/python:2.7
+    - image: circleci/python:3.7
   working_directory: ~/GetProxies
 
 jobs:

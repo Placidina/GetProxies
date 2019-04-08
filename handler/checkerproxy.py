@@ -6,16 +6,15 @@ import lxml.html
 import requests
 
 from requests.exceptions import Timeout, TooManyRedirects, RequestException
-from managers import ThreadManager
+from core import Threading
 
 
-class CheckerProxyHandler(object):
+class CheckerProxy():
     """
-    Class to get proxies in checkerproxy.net
+    checkerproxy.net
     """
 
     def __init__(self, event_log, header):
-        super(CheckerProxyHandler, self).__init__()
         self.log = event_log
         self.header = header
 
@@ -35,10 +34,10 @@ class CheckerProxyHandler(object):
         threads = []
 
         pages = self.pages()
-        pages_per_threads = (pages[i:i + 2] for i in xrange(0, len(pages), 2))
+        pages_per_threads = (pages[i:i + 2] for i in range(0, len(pages), 2))
         for pgs in pages_per_threads:
             threads.append(
-                ThreadManager(
+                Threading(
                     target=self.get,
                     args=(
                         pgs,
@@ -51,7 +50,7 @@ class CheckerProxyHandler(object):
 
         try:
             for thread in threads:
-                results.append(thread.join())
+                results.append(thread.wait())
         except KeyboardInterrupt:
             self.log('Ctrl-C caught, exiting', 'WARNING', True)
             sys.exit(1)

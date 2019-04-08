@@ -4,17 +4,15 @@ import sys
 import requests
 import lxml.html
 
-from requests.exceptions import Timeout, TooManyRedirects, RequestException
-from managers import ThreadManager
+from core import Threading
 
 
-class AliveProxyHandler(object):
+class AliveProxy():
     """
-    Class to get proxies in aliveproxy.com
+    aliveproxy.com
     """
 
     def __init__(self, event_log, header):
-        super(AliveProxyHandler, self).__init__()
         self.log = event_log
         self.header = header
 
@@ -32,19 +30,19 @@ class AliveProxyHandler(object):
 
         results = []
         threads = [
-            ThreadManager(
+            Threading(
                 target=self.get,
                 args=(
                     'high-anonymity-proxy-list/',
                 )
             ),
-            ThreadManager(
+            Threading(
                 target=self.get,
                 args=(
                     'anonymous-proxy-list/',
                 )
             ),
-            ThreadManager(
+            Threading(
                 target=self.get,
                 args=(
                     'transparent-proxy-list/',
@@ -57,7 +55,7 @@ class AliveProxyHandler(object):
 
         try:
             for thread in threads:
-                results.append(thread.join())
+                results.append(thread.wait())
         except KeyboardInterrupt:
             self.log('Ctrl-C caught, exiting', 'WARNING', True)
             sys.exit(1)
@@ -89,19 +87,19 @@ class AliveProxyHandler(object):
                 ),
                 headers=self.header
             )
-        except Timeout:
+        except requests.exceptions.Timeout:
             return result
-        except TooManyRedirects:
+        except requests.exceptions.TooManyRedirects:
             return result
-        except RequestException as err:
+        except requests.exceptions.RequestException as err:
             self.log(err, 'ERROR', True)
             return result
 
         tree = lxml.html.fromstring(resp.text)
-        for tr in tree.findall('.//tr[@class="cw-list"]'):
+        for row in tree.findall('.//tr[@class="cw-list"]'):
             proxy, _, _, _, _, _, _, _, _, _ = map(
                 lambda x: x.xpath('.//br/preceding-sibling::text()[1]'),
-                tr.findall('.//td')
+                row.findall('.//td')
             )
 
             result.append({

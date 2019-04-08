@@ -7,26 +7,14 @@ import time
 from colorama import init
 
 
-LOG_COLOR = {
-    'INFO': '94m',
-    'ERROR': '31m',
-    'WARNING': '93m',
-    'SUCCESS': '92m',
-    'DANGER': '91m'
-}
-TAG_LOG = {
-    'INFO': '*',
-    'WARNING': '!',
-    'ERROR': '#',
-    'SUCCESS': '+',
-    'DANGER': '-'
-}
+LOG_COLOR = {'INFO': '94m', 'ERROR': '31m', 'WARNING': '93m', 'SUCCESS': '92m', 'CRITICAL': '91m'}
+TAG_LOG = {'INFO': '*', 'WARNING': '!', 'ERROR': '-', 'SUCCESS': '+', 'CRITICAL': '#'}
 
 
 init()
 
 
-class EventManager(object):
+class Logging():
 
     def __init__(self):
         pass

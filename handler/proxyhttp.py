@@ -6,16 +6,15 @@ import lxml.html
 import requests
 
 from requests.exceptions import Timeout, TooManyRedirects, RequestException
-from managers import ThreadManager
+from core import Threading
 
 
-class ProxyHTTPHandler(object):
+class ProxyHTTP():
     """
-    Class to get proxies in proxyhttp.net
+    proxyhttp.net
     """
 
     def __init__(self, event_log, header):
-        super(ProxyHTTPHandler, self).__init__()
         self.log = event_log
         self.header = header
 
@@ -37,7 +36,7 @@ class ProxyHTTPHandler(object):
         pages = self.pages()
         for page in pages:
             threads.append(
-                ThreadManager(
+                Threading(
                     target=self.get,
                     args=(
                         page,
@@ -50,7 +49,7 @@ class ProxyHTTPHandler(object):
 
         try:
             for thread in threads:
-                results.append(thread.join())
+                results.append(thread.wait())
         except KeyboardInterrupt:
             self.log('Ctrl-C caught, exiting', 'WARNING', True)
             sys.exit(1)
@@ -88,9 +87,9 @@ class ProxyHTTPHandler(object):
             return result
 
         tree = lxml.html.fromstring(resp.text)
-        pages = map(lambda x: x.text, tree.findall('.//div[@id="pages"]/a'))
+        pages = list(map(lambda x: x.text, tree.findall('.//div[@id="pages"]/a')))
 
-        for page in xrange(1, int(pages[-2])):
+        for page in range(1, int(pages[-2])):
             result.append(page)
 
         return result
@@ -122,23 +121,23 @@ class ProxyHTTPHandler(object):
 
         tree = lxml.html.fromstring(resp.text)
 
-        js = tree.xpath(
+        javascript = tree.xpath(
             './/script[contains(text(),"<![CDATA")]'
         )[0].text.replace('\n', '').replace(' ', '').replace('//', '')
-        js = re.search('CDATA\[(.*)\]\]', js).group(1)
-        exec js
+        javascript = re.search(r'CDATA\[(.*)\]\]', javascript).group(1)
+        exec(javascript)
 
-        for tr in tree.xpath('.//table[@class="proxytbl"]/tr')[1:]:
-            ip, port, _, _, _, _, _ = map(
+        for row in tree.xpath('.//table[@class="proxytbl"]/tr')[1:]:
+            ipv4, port, _, _, _, _, _ = map(
                 lambda x: x.text_content().strip().replace(' ', '').replace('\t', ''),
-                tr.findall('.//td')
+                row.findall('.//td')
             )
 
             script = port.replace('\n', '').replace(' ', '').replace('//', '')
-            script = re.search('CDATA\[document\.write\((.*)\)\;\]\]', script).group(1)
+            script = re.search(r'CDATA\[document\.write\((.*)\)\;\]\]', script).group(1)
 
             result.append({
-                'ip': ip,
+                'ip': ipv4,
                 'port': int(eval(script)),
                 'ms': None
             })

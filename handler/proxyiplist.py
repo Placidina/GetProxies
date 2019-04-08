@@ -5,16 +5,15 @@ import lxml.html
 import requests
 
 from requests.exceptions import Timeout, TooManyRedirects, RequestException
-from managers import ThreadManager
+from core import Threading
 
 
-class ProxyIPListHandler(object):
+class ProxyIPList():
     """
-    Class to get proxies in proxy-ip-list.com
+    proxy-ip-list.com
     """
 
     def __init__(self, event_log, header):
-        super(ProxyIPListHandler, self).__init__()
         self.log = event_log
         self.header = header
 
@@ -30,11 +29,11 @@ class ProxyIPListHandler(object):
             flush=True
         )
 
-        thread = ThreadManager(target=self.get)
+        thread = Threading(target=self.get)
         thread.start()
-        
+
         try:
-            result = thread.join()
+            result = thread.wait()
         except KeyboardInterrupt:
             self.log('Ctrl-C caught, exiting', 'WARNING', True)
             sys.exit(1)
@@ -69,10 +68,10 @@ class ProxyIPListHandler(object):
             return result
 
         tree = lxml.html.fromstring(resp.text)
-        for tr in tree.findall('.//tbody/tr'):
+        for row in tree.findall('.//tbody/tr'):
             proxy, _, _, _, _ = map(
                 lambda x: x.text_content().strip().replace(' ', '').replace('\t', ''),
-                tr.findall('.//td')
+                row.findall('.//td')
             )
 
             result.append({

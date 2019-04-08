@@ -5,16 +5,15 @@ import lxml.html
 import requests
 
 from requests.exceptions import Timeout, TooManyRedirects, RequestException
-from managers import ThreadManager
+from core import Threading
 
 
-class ProxyNovaHandler(object):
+class ProxyNova():
     """
-    Class to get proxies in proxynova.com
+    proxynova.com
     """
 
     def __init__(self, event_log, header):
-        super(ProxyNovaHandler, self).__init__()
         self.log = event_log
         self.header = header
 
@@ -34,11 +33,11 @@ class ProxyNovaHandler(object):
         threads = []
 
         countries = self.countries()
-        countries_per_threads = (countries[i:i + 30] for i in xrange(0, len(countries), 30))
+        countries_per_threads = (countries[i:i + 30] for i in range(0, len(countries), 30))
 
         for cts in countries_per_threads:
             threads.append(
-                ThreadManager(
+                Threading(
                     target=self.get,
                     args=(
                         cts,
@@ -51,7 +50,7 @@ class ProxyNovaHandler(object):
 
         try:
             for thread in threads:
-                results.append(thread.join())
+                results.append(thread.wait())
         except KeyboardInterrupt:
             self.log('Ctrl-C caught, exiting', 'WARNING', True)
             sys.exit(1)
@@ -88,10 +87,10 @@ class ProxyNovaHandler(object):
             return result
 
         tree = lxml.html.fromstring(resp.text)
-        results = map(
+        results = list(map(
             lambda x: x.attrib['value'] if x.attrib.has_key('value') and x.attrib['value'] else None,
             tree.findall('.//select[@name="proxy_country"]/option')
-        )
+        ))
 
         for country in results[2:]:
             result.append(country)
@@ -124,12 +123,12 @@ class ProxyNovaHandler(object):
                 continue
 
             tree = lxml.html.fromstring(resp.text)
-            for tr in tree.xpath('.//table[@id="tbl_proxy_list"]/tbody/tr'):
-                td = tr.findall('.//td')
-                if len(td) == 8:
-                    ip, port, _, _, _, _, _, _ = map(lambda x: x, td)
+            for row in tree.xpath('.//table[@id="tbl_proxy_list"]/tbody/tr'):
+                column = row.findall('.//td')
+                if len(column) == 8:
+                    ipv4, port, _, _, _, _, _, _ = map(lambda x: x, column)
                     result.append({
-                        'ip': ip.find('.//abbr').attrib['title'].strip().replace(' ', '').replace('\t', ''),
+                        'ip': ipv4.find('.//abbr').attrib['title'].strip().replace(' ', '').replace('\t', ''),
                         'port': int(port.text_content().strip().replace(' ', '').replace('\t', '')),
                         'ms': None
                     })

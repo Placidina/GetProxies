@@ -1,7 +1,7 @@
 # GetProxies
 
 [![CircleCI](https://img.shields.io/circleci/project/github/Placidina/GetProxies.svg?style=popout-square")](https://circleci.com/gh/Placidina/GetProxies)
-[![Python 2.7](https://img.shields.io/badge/python-2.7-yellow.svg)](https://www.python.org/)
+[![Python 3.7](https://img.shields.io/badge/python-3.7-yellow.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-GPLv3-red.svg)](https://github.com/Placidina/GetProxies/blob/master/LICENSE)
 
 Bot to search free HTTP proxies

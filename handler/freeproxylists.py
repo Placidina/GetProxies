@@ -2,20 +2,19 @@
 
 import sys
 import codecs
-import lxml.html
+import lxml
 import requests
 
 from requests.exceptions import Timeout, TooManyRedirects, RequestException
-from managers import ThreadManager
+from core import Threading
 
 
-class FreeProxyListHandler(object):
+class FreeProxyList():
     """
-    Class to get proxies in freeproxylists.com
+    freeproxylists.com
     """
 
     def __init__(self, event_log, header):
-        super(FreeProxyListHandler, self).__init__()
         self.log = event_log
         self.header = header
 
@@ -48,10 +47,10 @@ class FreeProxyListHandler(object):
             threads = []
 
             links = self.pages(page)
-            links_per_threads = (links[i:i + 5] for i in xrange(0, len(links), 5))
+            links_per_threads = (links[i:i + 5] for i in range(0, len(links), 5))
             for lks in links_per_threads:
                 threads.append(
-                    ThreadManager(
+                    Threading(
                         target=self.get,
                         args=(
                             lks,
@@ -64,7 +63,7 @@ class FreeProxyListHandler(object):
 
             try:
                 for thread in threads:
-                    results.append(thread.join())
+                    results.append(thread.wait())
             except KeyboardInterrupt:
                 self.log('Ctrl-C caught, exiting', 'WARNING', True)
                 sys.exit(1)
@@ -104,8 +103,8 @@ class FreeProxyListHandler(object):
             return result
 
         tree = lxml.html.fromstring(resp.text)
-        for tr in tree.xpath('.//table[@style="font-family:Tahoma;font-size:8.5pt;width:468px;color:#006699;"]/tr')[1:]:
-            link, _, _, _ = map(lambda x: x, tr.findall('.//td'))
+        for row in tree.xpath('.//table[@style="font-family:Tahoma;font-size:8.5pt;width:468px;color:#006699;"]/tr')[1:]:
+            link, _, _, _ = map(lambda x: x, row.findall('.//td'))
             real_link = link[0].attrib['href'].split('/')
             result.append(
                 'load_{}_{}'.format(
@@ -148,13 +147,13 @@ class FreeProxyListHandler(object):
             tree_ = lxml.html.fromstring(html_str)
 
             for tr_ in tree_.xpath('.//table/tr')[2:]:
-                ip, port = map(
+                ipv4, port = map(
                     lambda x: x.text_content().strip().replace(' ', '').replace('\t', ''),
                     tr_.findall('.//td')
                 )
 
                 result.append({
-                    'ip': ip,
+                    'ip': ipv4,
                     'port': int(port),
                     'ms': None
                 })

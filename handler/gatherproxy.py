@@ -7,16 +7,15 @@ import lxml.html
 import requests
 
 from requests.exceptions import Timeout, TooManyRedirects, RequestException
-from managers import ThreadManager
+from core import Threading
 
 
-class GatherProxyHandler(object):
+class GatherProxy():
     """
-    Class to get proxies in gatherproxy.com
+    gatherproxy.com
     """
 
     def __init__(self, event_log, header):
-        super(GatherProxyHandler, self).__init__()
         self.log = event_log
         self.header = header
 
@@ -42,11 +41,11 @@ class GatherProxyHandler(object):
 
         for proxy_type in proxy_types:
             pages = self.pages(proxy_type)
-            pages_per_threads = (pages[i:i + 20] for i in xrange(0, len(pages), 20))
+            pages_per_threads = (pages[i:i + 20] for i in range(0, len(pages), 20))
 
             for pgs in pages_per_threads:
                 threads.append(
-                    ThreadManager(
+                    Threading(
                         target=self.get,
                         args=(
                             proxy_type,
@@ -60,7 +59,7 @@ class GatherProxyHandler(object):
 
         try:
             for thread in threads:
-                results.append(thread.join())
+                results.append(thread.wait())
         except KeyboardInterrupt:
             self.log('Ctrl-C caught, exiting', 'WARNING', True)
             sys.exit(1)
@@ -96,16 +95,16 @@ class GatherProxyHandler(object):
                     proxy_type[0].lower() + proxy_type[1:]
                 )
             )
-        except Exception as err:
+        except requests.exceptions.RequestException as err:
             self.log(err, 'ERROR', True)
             return 0
 
         tree = lxml.html.fromstring(resp.text)
         pagenavi = tree.xpath('.//div[@class="pagenavi"]/a')
-        pages = map(lambda x: x.text, pagenavi)
+        pages = list(map(lambda x: x.text, pagenavi))
 
         result = []
-        for i in xrange(1, int(pages[-1])):
+        for i in range(1, int(pages[-1])):
             result.append(i)
 
         return result
@@ -145,14 +144,14 @@ class GatherProxyHandler(object):
                 continue
 
             tree = lxml.html.fromstring(resp.text)
-            for tr in tree.xpath('.//table/tr')[2:]:
-                _, ip, port, _, _, _, _, _ = map(
+            for row in tree.xpath('.//table/tr')[2:]:
+                _, ipv4, port, _, _, _, _, _ = map(
                     lambda x: x.text_content().strip().replace(' ', '').replace('\t', ''),
-                    tr.findall('.//td')
+                    row.findall('.//td')
                 )
 
                 result.append({
-                    'ip': re.search(r'[0-9]+(?:\.[0-9]+){3}', ip).group(),
+                    'ip': re.search(r'[0-9]+(?:\.[0-9]+){3}', ipv4).group(),
                     'port': int(port.split("'")[1], 16),
                     'ms': None
                 })
