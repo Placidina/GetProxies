@@ -1,15 +1,17 @@
 #!/usr/bin/python3
 
-from handler import GatherProxy, ProxyIPList, AliveProxy,\
-    ProxyNova, ProxyHTTP, CheckerProxy, FreeProxyList
-from core import Logging, Threading
-import requests
-import json
-import argparse
-import re
-import sys
 from gevent import monkey
 monkey.patch_all()
+
+import sys
+import re
+import argparse
+import json
+import requests
+
+from core import Logging, Threading
+from handler import GatherProxy, ProxyIPList, AliveProxy,\
+    ProxyNova, ProxyHTTP, CheckerProxy, FreeProxyList
 
 
 # sys.tracebacklimit = 0

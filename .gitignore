@@ -13,3 +13,4 @@ out/
 *.txt
 *.json
 !config.json
+!.vscode/settings.json
