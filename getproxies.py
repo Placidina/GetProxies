@@ -106,7 +106,6 @@ class GetProxies(Logging):
                 self.log, self.headers).initialize())
 
         self.proxies = [ips for proxy in self.proxies for ips in proxy]
-        self.proxies = {proxy['ip']: proxy for proxy in self.proxies}.values()
 
         self.log('Total Unic Proxies Find: \033[93m{}'.format(
             len(self.proxies)))
@@ -145,11 +144,11 @@ class GetProxies(Logging):
         results = []
 
         if len(self.proxies) >= 100:
-            proxies = (self.proxies[i:i + len(self.proxies) / 100]
-                       for i in range(0, len(self.proxies), len(self.proxies) / 100))
+            proxies = (self.proxies[i:i + len(self.proxies) // 100]
+                       for i in range(0, len(self.proxies), len(self.proxies) // 100))
         else:
-            proxies = (self.proxies[i:i + len(self.proxies) / 10]
-                       for i in range(0, len(self.proxies), len(self.proxies) / 10))
+            proxies = (self.proxies[i:i + len(self.proxies) // 10]
+                       for i in range(0, len(self.proxies), len(self.proxies) // 10))
 
         for pxs in proxies:
             threads.append(Threading(target=self.checker, args=(pxs,)))
