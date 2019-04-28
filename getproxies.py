@@ -14,7 +14,7 @@ from handler import GatherProxy, ProxyIPList, AliveProxy,\
     ProxyNova, ProxyHTTP, CheckerProxy, FreeProxyList
 
 
-# sys.tracebacklimit = 0
+sys.tracebacklimit = 0
 CONFIG = json.load(open('config.json'))
 
 
@@ -49,6 +49,8 @@ def parse_args():
     parser.add_argument('--all-no', default=[], help='All proxies except')
     parser.add_argument('--check', default=False,
                         action='store_true', help='Verify the proxies is working')
+    parser.add_argument('--check-url', required='--check' in sys.argv,
+                        dest='checker', help='Url to checke your current ip')
 
     try:
         return parser.parse_args()
@@ -72,8 +74,9 @@ class GetProxies(Logging):
 
         self.log('GetProxies initialized')
 
-        self.current_ip = self.get_current_ip()
-        self.log('Your Current IP: \033[93m{}'.format(self.current_ip))
+        if self.args['checker']:
+            self.current_ip = self.get_current_ip()
+            self.log('Your Current IP: \033[93m{}'.format(self.current_ip))
 
         all_no = []
         if self.args['all_no']:
@@ -125,9 +128,13 @@ class GetProxies(Logging):
         """
 
         try:
-            resp = requests.get('http://checkip.amazonaws.com',
+            resp = requests.get(self.args['checker'],
                                 headers=self.headers, timeout=15)
-            return resp.text.replace('\n', '')
+            match = re.search(r'([0-9]{1,3}\.){3}[0-9]{1,3}', resp.text)
+            if match:
+                return match.group(0)
+            else:
+                sys.exit("Unable to retrieve your current IP")
         except requests.exceptions.Timeout:
             sys.exit("Timeout error to check your current IP")
         except requests.exceptions.RequestException:
@@ -178,7 +185,7 @@ class GetProxies(Logging):
         result = []
         for proxy in proxies:
             try:
-                resp = requests.get('http://checkip.amazonaws.com', headers=self.headers, proxies={'http': '{}:{}'.format(
+                resp = requests.get(self.args['checker'], headers=self.headers, proxies={'http': '{}:{}'.format(
                     proxy['ip'], proxy['port']), 'https': '{}:{}'.format(proxy['ip'], proxy['port'])}, timeout=15)
             except requests.exceptions.RequestException:
                 continue
@@ -201,11 +208,10 @@ class GetProxies(Logging):
         :return: True or False
         """
 
-        html_lines = html.splitlines()
-        if len(html_lines) == 1:
-            match = re.match(r'(?:[0-9]{1,3}\.){3}[0-9]{1,3}', html)
+        if html:
+            match = re.search(r'([0-9]{1,3}\.){3}[0-9]{1,3}', html)
             if match:
-                if self.current_ip in html:
+                if self.current_ip == match.group(0):
                     return False
             else:
                 return False
