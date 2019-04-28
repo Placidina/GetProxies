@@ -6,15 +6,11 @@
 
 Bot to search free HTTP proxies
 
-Screenshot
-
-----
+## Screenshot
 
 ![Terminal](https://i.imgur.com/znTV1Cg.png)
 
-Installation
-
-----
+## Installation
 
 Cloning the [Git](https://github.com/Placidina/GetProxies) repository
 ````
@@ -25,11 +21,10 @@ Install dependencies
 ```
 $ python -m pip install -r requirements.txt
 ```
-GetProxies works out of the box with [Python](http://www.python.org/download/) version 2.7.x on any platform.
 
-Output
+GetProxies works out of the box with [Python](http://www.python.org/download/) version 3.x on any platform.
 
-----
+## Output
 
 Output JSON result
 ```
@@ -47,9 +42,7 @@ Output JSON result
 * Parameter `port` of type `Integir` - Port of proxy
 * Parameter `ms` of type `null` or `String` - Proxy response time of argument `--check`
 
-Arguments
-
-----
+## Arguments
 
 ```
 -o | --output         Output JSON file (e.g, exemple.json)
@@ -63,11 +56,10 @@ Arguments
 --all                 Get proxies from all sites
 --all-no              All proxies except
 --check               Verify the proxies is working
+--check-url CHECKER   Url to checke your current ip
 ```
 
-Usage
-
-----
+## Usage
 
 ```
 python getproxies.py --all
